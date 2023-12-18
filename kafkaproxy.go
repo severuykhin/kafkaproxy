@@ -41,9 +41,14 @@ func (k *kafkaproxy) Run(ctx context.Context) error {
 		// MaxAttempts: 1, // @TODO
 	})
 
-	controller := controller{
+	usecase := usecase{
 		logger: k.Logger,
 		writer: kafkaWriter,
+	}
+
+	controller := controller{
+		logger:  k.Logger,
+		usecase: usecase,
 	}
 
 	router := snfiber.NewRouter()
