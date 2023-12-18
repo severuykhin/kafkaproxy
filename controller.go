@@ -26,7 +26,6 @@ func (h *controller) PushMessages(request *snfiber.Request) (interface{}, error)
 	request.BodyParser(&requestParams)
 
 	var messages []kafka.Message
-
 	for _, record := range requestParams.Records {
 		messageValue, err := json.Marshal(record.Value)
 		if err != nil {
