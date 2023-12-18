@@ -45,7 +45,7 @@ func (h *controller) PushMessages(request *snfiber.Request) (interface{}, error)
 		kafkaMessage := kafka.Message{
 			Topic:   topicName,
 			Value:   messageValue,
-			Key:     record.Key,
+			Key:     []byte(record.Key),
 			Headers: messageHeaders,
 		}
 
