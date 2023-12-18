@@ -55,6 +55,17 @@ func (k *kafkaproxy) Run(ctx context.Context) error {
 	router.Post("/topics/:topic_name", controller.PushMessages)
 
 	server := snfiber.NewServer(router, snfiber.WithLogger(k.Logger), snfiber.WithMetricsRoute())
+	defer server.Shutdown()
 
-	return server.Listen(":" + k.Port)
+	errCh := make(chan error)
+	go func() {
+		errCh <- server.Listen(":" + k.Port)
+	}()
+
+	select {
+	case <-ctx.Done():
+		return nil
+	case err := <-errCh:
+		return err
+	}
 }
