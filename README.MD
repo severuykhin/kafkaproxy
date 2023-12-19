@@ -1,5 +1,35 @@
 Library for convinient access to Kafka via the rest interface
 
+## Usage
+```
+func main() {
+
+	k := kafkaproxy.New(
+		[]string{"localhost:9092"},
+		kafkaproxy.WithPort("5436"), // default 80
+		kafkaproxy.WithBatchSize(5), // default 10
+		kafkaproxy.WithBatchTimeout(time.Millisecond*20), // default 100ms
+		kafkaproxy.WithWriteTimeout(time.Second), // default 1s
+	)
+
+	ctx, cancel := context.WithCancel(context.TODO())
+
+	interruptCh := make(chan os.Signal, 1)
+	signal.Notify(interruptCh, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-interruptCh
+		cancel()
+	}()
+
+	if err := k.Run(ctx); err != nil {
+		fmt.Println("kafkaproxy finished with error: ", err)
+	}
+
+	fmt.Println("process work finished")
+}
+```
+
 ## Methods
 
 ### Push messages
@@ -32,7 +62,3 @@ POST /topics/:topic_name
     ]
 }
 ```
-
-@TODO
-
-- transfer the bussiness logic for generating and sending messages to usecase
