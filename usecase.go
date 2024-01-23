@@ -45,6 +45,9 @@ func (u *usecase) PushMessages(ctx context.Context, topicName string, records []
 
 	err := u.writer.WriteMessages(ctx, messages...)
 	if err != nil {
+		if err == kafka.UnknownTopicOrPartition {
+			return goerrors.NewNotFoundErr().WithMessage(err.Error())
+		}
 		return goerrors.NewInternalErr().WithMessage(err.Error())
 	}
 

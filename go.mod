@@ -4,9 +4,9 @@ go 1.20
 
 require (
 	github.com/segmentio/kafka-go v0.4.47
-	github.com/severuykhin/goerrors v0.0.3
+	github.com/severuykhin/goerrors v0.1.0
 	github.com/severuykhin/logfmt/v4 v4.3.0
-	github.com/severuykhin/snfiber v0.0.1
+	github.com/severuykhin/snfiber v0.1.0
 )
 
 require (
