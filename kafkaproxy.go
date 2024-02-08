@@ -48,7 +48,7 @@ func New(brokers []string, opts ...optFunc) *kafkaproxy {
 func (k *kafkaproxy) Run(ctx context.Context) error {
 
 	router := snfiber.NewRouter()
-	router.Post("/topics/:topic_name", k.PushMessages)
+	router.Post("/topics/:topic_name", k.pushMessages)
 
 	server := snfiber.NewServer(router, snfiber.WithLogger(k.logger), snfiber.WithMetricsRoute())
 	defer server.Shutdown()
@@ -66,7 +66,7 @@ func (k *kafkaproxy) Run(ctx context.Context) error {
 	}
 }
 
-func (k *kafkaproxy) PushMessages(request *snfiber.Request) (interface{}, error) {
+func (k *kafkaproxy) pushMessages(request *snfiber.Request) (interface{}, error) {
 
 	topicName := request.Params("topic_name", "")
 
