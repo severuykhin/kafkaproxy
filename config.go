@@ -7,8 +7,9 @@ import (
 	"github.com/severuykhin/logfmt/v4"
 )
 
-type kafkaWriterConfig struct {
-	Brokers      []string
+type kafkaProxyConfig struct {
+	Port         string
+	Logger       logger
 	BatchTimeout time.Duration
 	BatchSize    int
 	WriteTimeout time.Duration
@@ -21,39 +22,39 @@ var defaultWriterBatchSize = 10
 var defaultWriterBatchTimeout = time.Millisecond * 100
 var defaultWriterWriteTimeout = time.Second
 
-type optFunc func(*kafkaproxy) *kafkaproxy
+type optFunc func(*kafkaProxyConfig) *kafkaProxyConfig
 
 func WithLogger(l logger) optFunc {
-	return func(k *kafkaproxy) *kafkaproxy {
-		k.Logger = l
-		return k
+	return func(c *kafkaProxyConfig) *kafkaProxyConfig {
+		c.Logger = l
+		return c
 	}
 }
 
 func WithPort(port string) optFunc {
-	return func(k *kafkaproxy) *kafkaproxy {
-		k.Port = port
-		return k
+	return func(c *kafkaProxyConfig) *kafkaProxyConfig {
+		c.Port = port
+		return c
 	}
 }
 
 func WithBatchSize(bashSize int) optFunc {
-	return func(k *kafkaproxy) *kafkaproxy {
-		k.KafkaWriterConfig.BatchSize = bashSize
-		return k
+	return func(c *kafkaProxyConfig) *kafkaProxyConfig {
+		c.BatchSize = bashSize
+		return c
 	}
 }
 
-func WithBatchTimeout(bashTimeout time.Duration) optFunc {
-	return func(k *kafkaproxy) *kafkaproxy {
-		k.KafkaWriterConfig.BatchTimeout = bashTimeout
-		return k
+func WithBatchTimeout(batchTimeout time.Duration) optFunc {
+	return func(c *kafkaProxyConfig) *kafkaProxyConfig {
+		c.BatchTimeout = batchTimeout
+		return c
 	}
 }
 
 func WithWriteTimeout(writeTimeout time.Duration) optFunc {
-	return func(k *kafkaproxy) *kafkaproxy {
-		k.KafkaWriterConfig.WriteTimeout = writeTimeout
-		return k
+	return func(c *kafkaProxyConfig) *kafkaProxyConfig {
+		c.WriteTimeout = writeTimeout
+		return c
 	}
 }
