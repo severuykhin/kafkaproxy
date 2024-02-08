@@ -2,64 +2,60 @@ package kafkaproxy
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/segmentio/kafka-go"
+	"github.com/severuykhin/goerrors"
 	"github.com/severuykhin/snfiber"
 )
 
 type kafkaproxy struct {
-	Port              string
-	Logger            logger
-	KafkaWriterConfig *kafkaWriterConfig
+	port   string
+	logger logger
+	writer *kafka.Writer
 }
 
 func New(brokers []string, opts ...optFunc) *kafkaproxy {
-	k := kafkaproxy{
-		Port:   defaultPort,
-		Logger: defaultLogger,
-		KafkaWriterConfig: &kafkaWriterConfig{
-			Brokers:      brokers,
-			BatchSize:    defaultWriterBatchSize,
-			BatchTimeout: defaultWriterBatchTimeout,
-			WriteTimeout: defaultWriterWriteTimeout,
-		},
+
+	config := kafkaProxyConfig{
+		Port:         defaultPort,
+		Logger:       defaultLogger,
+		BatchTimeout: defaultWriterBatchTimeout,
+		BatchSize:    defaultWriterBatchSize,
+		WriteTimeout: defaultWriterWriteTimeout,
 	}
 
 	for _, optFunc := range opts {
-		optFunc(&k)
+		optFunc(&config)
+	}
+
+	k := kafkaproxy{
+		port:   config.Port,
+		logger: config.Logger,
+		writer: kafka.NewWriter(kafka.WriterConfig{
+			Brokers:      brokers,
+			BatchTimeout: config.BatchTimeout,
+			BatchSize:    config.BatchSize,
+			WriteTimeout: config.WriteTimeout,
+			// MaxAttempts: 1, // @TODO
+		}),
 	}
 
 	return &k
 }
 
 func (k *kafkaproxy) Run(ctx context.Context) error {
-	kafkaWriter := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:      k.KafkaWriterConfig.Brokers,
-		BatchTimeout: k.KafkaWriterConfig.BatchTimeout,
-		BatchSize:    k.KafkaWriterConfig.BatchSize,
-		WriteTimeout: k.KafkaWriterConfig.WriteTimeout,
-		// MaxAttempts: 1, // @TODO
-	})
-
-	usecase := usecase{
-		logger: k.Logger,
-		writer: kafkaWriter,
-	}
-
-	controller := controller{
-		logger:  k.Logger,
-		usecase: usecase,
-	}
 
 	router := snfiber.NewRouter()
-	router.Post("/topics/:topic_name", controller.PushMessages)
+	router.Post("/topics/:topic_name", k.PushMessages)
 
-	server := snfiber.NewServer(router, snfiber.WithLogger(k.Logger), snfiber.WithMetricsRoute())
+	server := snfiber.NewServer(router, snfiber.WithLogger(k.logger), snfiber.WithMetricsRoute())
 	defer server.Shutdown()
 
 	errCh := make(chan error)
 	go func() {
-		errCh <- server.Listen(":" + k.Port)
+		errCh <- server.Listen(":" + k.port)
 	}()
 
 	select {
@@ -68,4 +64,56 @@ func (k *kafkaproxy) Run(ctx context.Context) error {
 	case err := <-errCh:
 		return err
 	}
+}
+
+func (k *kafkaproxy) PushMessages(request *snfiber.Request) (interface{}, error) {
+
+	topicName := request.Params("topic_name", "")
+
+	if topicName == "" {
+		return nil, goerrors.NewBadRequestErr().WithMessage("topic_name must not be empty")
+	}
+
+	var requestData PushMessagesRequest
+	err := request.BodyParser(&requestData)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []kafka.Message
+	for _, record := range requestData.Records {
+		messageValue, err := json.Marshal(record.Value)
+		if err != nil {
+			return nil, goerrors.NewBadRequestErr().WithMessage(err.Error())
+		}
+
+		var messageHeaders []kafka.Header
+
+		for headerKey, value := range record.Headers {
+			headerValue := fmt.Sprintf("%v", value)
+			messageHeaders = append(messageHeaders, kafka.Header{
+				Key:   headerKey,
+				Value: []byte(headerValue),
+			})
+		}
+
+		kafkaMessage := kafka.Message{
+			Topic:   topicName,
+			Value:   messageValue,
+			Key:     []byte(record.Key),
+			Headers: messageHeaders,
+		}
+
+		messages = append(messages, kafkaMessage)
+	}
+
+	err = k.writer.WriteMessages(request.Context(), messages...)
+	if err != nil {
+		if err == kafka.UnknownTopicOrPartition {
+			return nil, goerrors.NewNotFoundErr().WithMessage(err.Error())
+		}
+		return nil, goerrors.NewInternalErr().WithMessage(err.Error())
+	}
+
+	return nil, nil
 }
