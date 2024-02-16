@@ -110,9 +110,9 @@ func (k *kafkaproxy) PushMessages(request *snfiber.Request) (interface{}, error)
 	err = k.writer.WriteMessages(request.Context(), messages...)
 	if err != nil {
 		if err == kafka.UnknownTopicOrPartition {
-			return nil, goerrors.NewNotFoundErr().WithMessage(err.Error())
+			return nil, goerrors.NewNotFoundErr().WithMessage(err.Error()).WithContext("topic", topicName)
 		}
-		return nil, goerrors.NewInternalErr().WithMessage(err.Error())
+		return nil, goerrors.NewInternalErr().WithMessage(err.Error()).WithContext("topic", topicName)
 	}
 
 	return nil, nil
