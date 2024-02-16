@@ -49,8 +49,8 @@ github.com/severuykhin/goerrors v0.1.0 h1:gI/WgS36f0fS6n+hML/d0i1IvSbBjpI5uPmijC
 github.com/severuykhin/goerrors v0.1.0/go.mod h1:+8r/QY7lTToKEMuLejO2ga9Pd5cpxgM2Q4S8UMSnSYw=
 github.com/severuykhin/gostacktrace v0.0.1 h1:CwBIrrAgbek+pU5wCcqPYxUFEMdAZPft8wpJUEcu1OI=
 github.com/severuykhin/gostacktrace v0.0.1/go.mod h1:f45CM7qlbN7xpZtxoMgvknP3r29dzZuKUiF6aIEoFAg=
-github.com/severuykhin/logfmt/v4 v4.3.0 h1:GfN/mCPeYpFSNWE1R6HnJWPLNDs6NOwoDwhg/9DVMmk=
-github.com/severuykhin/logfmt/v4 v4.3.0/go.mod h1:sRvX99nBi0PY3Aan7cRttZ6ZBjO91hHzOpTHbGdG8JI=
+github.com/severuykhin/logfmt/v4 v4.3.1 h1:oe180otpembGSkpxf5IvUF5bIOtzbIVYwwYzTHgmgQM=
+github.com/severuykhin/logfmt/v4 v4.3.1/go.mod h1:sRvX99nBi0PY3Aan7cRttZ6ZBjO91hHzOpTHbGdG8JI=
 github.com/severuykhin/snfiber v0.1.0 h1:gS4tjNDkccunT/FTeyP7n/UWBJOdGnfvauly2fgCltk=
 github.com/severuykhin/snfiber v0.1.0/go.mod h1:aLWjfcULBQpz/Md/jt4po/04lKCwhw/8g8PbA+kDOnI=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
